@@ -2,6 +2,14 @@ import socket
 import threading
 import time
 
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    ip = s.getsockname()[0]
+    s.close()
+    
+    return ip
+
 tLock = threading.Lock()
 shutdown = False
 
@@ -17,12 +25,14 @@ def receving(name, sock):
         finally:
             tLock.release()
 
-host = '127.0.0.1'
+host = get_local_ip()
 port = 0
 
-server = ('127.0.0.1',5000)
+server_ip = input("Enter server ip:")           
+server = (server_ip, 5000)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
 s.bind((host, port))
 s.setblocking(0)
 

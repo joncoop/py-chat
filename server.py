@@ -1,17 +1,27 @@
 import socket
 import time
 
-host = '127.0.0.1'
+
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    ip = s.getsockname()[0]
+    s.close()
+    
+    return ip
+
+host = get_local_ip()
 port = 5000
 
 clients = []
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.bind((host,port))
+s.bind((host, port))
 s.setblocking(0)
 
 quitting = False
-print("Server Started.")
+print("Server Started on " + host)
+
 while not quitting:
     try:
         data, addr = s.recvfrom(1024)
@@ -25,4 +35,5 @@ while not quitting:
             s.sendto(data, client)
     except:
         pass
+    
 s.close()
