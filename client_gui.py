@@ -5,7 +5,7 @@ from tkinter import *
 class App:
     
     def __init__(self, master):
-        master.title("PyChat")
+        master.title("PyChat Client")
         
         connection = Frame(master)
         connection.pack()
