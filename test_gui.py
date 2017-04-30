@@ -17,19 +17,19 @@ class App:
         text_entry.pack()
 
         # Join section
-        self.ip_address = "192.168.1.64"
+        ip_address = "192.168.1.64"
         self.connection_text_widget = Text(connection, height=1, width=15)
         self.connection_text_widget.pack(side=LEFT, fill=Y)
-        self.connection_text_widget.insert(END, self.ip_address)
+        self.connection_text_widget.insert(END, ip_address)
 
-        self.button = Button(connection, 
-                             text="Join", fg="red",
-                             command=self.join_chat)
-        self.button.pack(side=LEFT)
+        self.join_btn = Button(connection, 
+                               text="Join",
+                               command=self.join_chat)
+        self.join_btn.pack(side=LEFT)
 
         
         # Chat area
-        self.chat_log = "Begin chat...\n"
+        chat_log = "Begin chat...\n"
         
         self.chat_text = Text(chat_frame, height=20, width=50)
         self.chat_scroll = Scrollbar(chat_frame)
@@ -40,36 +40,39 @@ class App:
         self.chat_text.config(yscrollcommand=self.chat_scroll.set)
         self.chat_scroll.config(command=self.chat_text.yview)
         
-        self.chat_text.insert(END, self.chat_log)
+        self.chat_text.insert(END, chat_log)
 
 
         # Message entry
         new_message = ""
 
-        self.T = Text(text_entry, height=4, width=50)
-        self.S = Scrollbar(text_entry)
+        self.msg_text = Text(text_entry, height=4, width=50)
+        self.msg_scroll = Scrollbar(text_entry)
         
-        self.T.pack(side=LEFT, fill=Y)
-        self.S.pack(side=RIGHT, fill=Y)
+        self.msg_text.pack(side=LEFT, fill=Y)
+        self.msg_scroll.pack(side=RIGHT, fill=Y)
         
-        self.T.config(yscrollcommand=self.S.set)
-        self.S.config(command=self.T.yview)
+        self.msg_text.config(yscrollcommand=self.msg_scroll.set)
+        self.msg_scroll.config(command=self.msg_text.yview)
         
-        self.T.insert(END, new_message)
+        self.msg_text.insert(END, new_message)
 
-        self.slogan = Button(text_entry,
-                             text="Send",
-                             command=self.send_message)
-        self.slogan.pack(side=LEFT)
+        self.send_btn = Button(text_entry,
+                               fg="green",
+                               text="Send",
+                               command=self.send_message)
+        self.send_btn.pack(side=LEFT)
     
     def join_chat(self):
-        self.T.insert(END, "You've join a chat...\n")
+        ip_address = self.connection_text_widget.get("1.0",END)
+        self.chat_text.insert(END, "You've joined {}\n".format(ip_address))
 
     def send_message(self):
-        message = self.T.get("1.0",END)
-        self.T.delete("1.0",END)
-        
-        self.chat_text.insert(END, message)
+        msg = self.msg_text.get("1.0",END).strip()
+
+        if len(msg) > 0:
+            self.msg_text.delete("1.0",END)
+            self.chat_text.insert(END, msg + "\n")
 
 root = Tk()
 app = App(root)
