@@ -73,6 +73,7 @@ class App:
         if len(msg) > 0:
             self.msg_text.delete("1.0",END)
             self.chat_text.insert(END, msg + "\n")
+            self.chat_text.see(END)
 
 root = Tk()
 app = App(root)
