@@ -38,9 +38,12 @@ class App:
                                fg="red",
                                text="Stop",
                                command=self.stop)
-        self.stop_btn.pack(side=LEFT)
+        self.stop_btn.pack(side=RIGHT)
 
         self.running = False
+
+        # Queue
+        
         
     def get_local_ip(self):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -53,43 +56,41 @@ class App:
     def start(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s.bind((self.host_ip, self.port))
-        self.s.setblocking(0)
+        #self.s.setblocking(0)
 
         self.clients = []
         
         self.running = True
         print("Server started on " + self.host_ip)
-
+        self.process_messages()
+        
     def stop(self):
         print("stop")
         self.running = False
 
-    def run(self):
-        print("processing messages started")
+    def process_messages(self):
+        print("processing messages")
 
         while self.running:
             print("running")
             try:
                 data, addr = self.s.recvfrom(1024)
-                if "Quit" in str(data):
-                    self.quitting = True
+
                 if addr not in self.clients:
-                    clients.append(addr)
+                    self.clients.append(addr)
                     
                 print(time.ctime(time.time()) + str(addr) + ": :" + str(data))
+                
                 for client in self.clients:
                     self.s.sendto(data, client)
             except:
-                pass
+                print("except!")
         else:
             print("not running")
 
-        #time.sleep(1000)
         
 root = Tk()
 app = App(root)
-root.after(1000, app.run)
 root.mainloop()
-#app.run()
 
 
