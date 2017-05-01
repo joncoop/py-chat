@@ -1,7 +1,26 @@
 #!/usr/bin/python3
 
+import socket
+import time
+import threading
 from tkinter import *
 
+def get_local_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    ip = s.getsockname()[0]
+    s.close()
+    
+    return ip
+
+# Do the network/socket stuff
+def process_messages():
+    print('processing messages')
+    while True:
+        if running:
+            print("running")
+            time.sleep(1)
+    
 class App:
     
     def __init__(self, master):
@@ -25,6 +44,11 @@ class App:
         self.join_btn = Button(connection, 
                                text="Join",
                                command=self.join_chat)
+        self.join_btn.pack(side=LEFT)
+
+        self.join_btn = Button(connection, 
+                               text="Leave",
+                               command=self.leave_chat)
         self.join_btn.pack(side=LEFT)
 
         
@@ -64,9 +88,19 @@ class App:
         self.send_btn.pack(side=LEFT)
     
     def join_chat(self):
+        global running
+        
         ip_address = self.connection_text_widget.get("1.0",END)
         self.chat_text.insert(END, "You've joined {}\n".format(ip_address))
 
+        running = True
+
+    def leave_chat(self):
+        global running
+        
+        self.chat_text.insert(END, "You've left the chat.")
+        running = False
+        
     def send_message(self):
         msg = self.msg_text.get("1.0",END).strip()
 
@@ -75,6 +109,15 @@ class App:
             self.chat_text.insert(END, msg + "\n")
             self.chat_text.see(END)
 
-root = Tk()
-app = App(root)
-root.mainloop()
+
+if __name__ == "__main__":
+    running = False
+    thread = threading.Thread(target=process_messages)
+    thread.start()
+
+    root = Tk()
+    app = App(root)
+    root.mainloop()
+
+    thread.join()
+
