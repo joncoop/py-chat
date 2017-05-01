@@ -8,6 +8,7 @@ from tkinter import *
 class Client:
     
     def __init__(self):
+        self.server = None
         self.running = False
         
     # Hacky helper function
@@ -28,23 +29,27 @@ class Client:
         self.s.bind((host, port))
         self.s.setblocking(0)
 
-        thread = threading.Thread(target=self.receive)
+        thread = threading.Thread(target=self.receive, args=("RecvThread", self.s))
         thread.start()
 
-    def start(self, server_ip):
+    def start(self, app, server_ip):
+        self.app = app
         self.server = (server_ip, 5000)
         self.running = True
         
     def stop(self):
+        self.server = None
         self.running = False
         
     # Do the network/socket stuff
     def send(self, alias, msg):
-        if msg != '':
-            self.s.sendto((alias + ": " + msg).encode(), self.server)
+        if self.server != None:
+            if msg != '':
+                self.s.sendto((alias + ": " + msg).encode(), self.server)
     
-    def receive(self):
-        
+    def receive(self, name, sock):
+        tLock = threading.Lock()
+        '''
         print('processing messages')
         
         while True:
@@ -58,12 +63,16 @@ class Client:
                     tLock.acquire()
                     while True:
                         data, addr = sock.recvfrom(1024)
-                        print(str(data))
+                        #print(str(data))
+                        app.chat_text.insert(END, data + "\n")
+                        app.chat_text.see(END)
                 except:
                     pass
                 finally:
                     tLock.release()
-        '''
+
+            time.sleep(0.5)
+        #'''
     
 class App:
     
@@ -81,7 +90,7 @@ class App:
         text_entry.pack()
 
         # Join section
-        ip_address = "192.168.1.64"
+        ip_address = client.get_local_ip()
         self.connection_text_widget = Text(connection, height=1, width=15)
         self.connection_text_widget.pack(side=LEFT, fill=Y)
         self.connection_text_widget.insert(END, ip_address)
@@ -136,7 +145,7 @@ class App:
         ip_address = self.connection_text_widget.get("1.0",END)
         self.chat_text.insert(END, "You've joined {}\n".format(ip_address))
 
-        self.client.start(ip_address)
+        self.client.start(self, ip_address)
 
     def leave_chat(self):        
         self.chat_text.insert(END, "You've left the chat.")
@@ -149,13 +158,11 @@ class App:
         
         if len(msg) > 0:
             self.msg_text.delete("1.0",END)
-            self.chat_text.insert(END, msg + "\n")
-            self.chat_text.see(END)
+            #self.chat_text.insert(END, msg + "\n")
+            #self.chat_text.see(END)
 
 
-if __name__ == "__main__":
-    running = False
-    
+if __name__ == "__main__":    
     client = Client()
     client.run()
     

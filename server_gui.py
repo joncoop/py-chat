@@ -123,9 +123,7 @@ class App:
         app.state.set("Server is stopped at")
 
 
-if __name__ == "__main__":
-    running = False
-    
+if __name__ == "__main__":    
     server = Server()
     server.run()
     
