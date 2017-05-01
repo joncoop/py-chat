@@ -5,26 +5,71 @@ import time
 import threading
 from tkinter import *
 
-def get_local_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    ip = s.getsockname()[0]
-    s.close()
+class Client:
     
-    return ip
+    def __init__(self):
+        self.running = False
+        
+    # Hacky helper function
+    def get_local_ip(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        
+        return ip
 
-# Do the network/socket stuff
-def process_messages():
-    print('processing messages')
-    while True:
-        if running:
-            print("running")
-            time.sleep(1)
+    # Client controls
+    def run(self):
+        host = self.get_local_ip()
+        port = 0
+
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.s.bind((host, port))
+        self.s.setblocking(0)
+
+        thread = threading.Thread(target=self.receive)
+        thread.start()
+
+    def start(self, server_ip):
+        self.server = (server_ip, 5000)
+        self.running = True
+        
+    def stop(self):
+        self.running = False
+        
+    # Do the network/socket stuff
+    def send(self, alias, msg):
+        if msg != '':
+            self.s.sendto((alias + ": " + msg).encode(), self.server)
+    
+    def receive(self):
+        
+        print('processing messages')
+        
+        while True:
+            if self.running:
+                print("running")
+                time.sleep(1)
+        '''
+        while True:
+            if self.running:
+                try:
+                    tLock.acquire()
+                    while True:
+                        data, addr = sock.recvfrom(1024)
+                        print(str(data))
+                except:
+                    pass
+                finally:
+                    tLock.release()
+        '''
     
 class App:
     
-    def __init__(self, master):
+    def __init__(self, master, client):
         master.title("PyChat Client")
+        self.client = client
         
         connection = Frame(master)
         connection.pack()
@@ -87,23 +132,21 @@ class App:
                                command=self.send_message)
         self.send_btn.pack(side=LEFT)
     
-    def join_chat(self):
-        global running
-        
+    def join_chat(self):        
         ip_address = self.connection_text_widget.get("1.0",END)
         self.chat_text.insert(END, "You've joined {}\n".format(ip_address))
 
-        running = True
+        self.client.start(ip_address)
 
-    def leave_chat(self):
-        global running
-        
+    def leave_chat(self):        
         self.chat_text.insert(END, "You've left the chat.")
-        running = False
+        self.client.stop()
         
     def send_message(self):
         msg = self.msg_text.get("1.0",END).strip()
 
+        self.client.send("alias", msg)
+        
         if len(msg) > 0:
             self.msg_text.delete("1.0",END)
             self.chat_text.insert(END, msg + "\n")
@@ -112,12 +155,11 @@ class App:
 
 if __name__ == "__main__":
     running = False
-    thread = threading.Thread(target=process_messages)
-    thread.start()
-
+    
+    client = Client()
+    client.run()
+    
     root = Tk()
-    app = App(root)
+    app = App(root, client)
     root.mainloop()
-
-    thread.join()
 

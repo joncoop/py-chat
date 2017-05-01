@@ -37,7 +37,7 @@ class Server:
         '''
         print('processing messages')
         while True:
-            if running:
+            if self.running:
                 print("running")
                 time.sleep(1)
         '''
