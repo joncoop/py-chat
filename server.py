@@ -60,52 +60,54 @@ class Server:
             time.sleep(0.5)
             
 # A nifty GUI
-class App:
+class App(Frame):
     
-    def __init__(self, master, server):
-        self.master = master
+    def __init__(self, parent, server):
+        Frame.__init__(self, parent)   
+        self.parent = parent
         self.server = server
-        
-        # Network stuff
+        self.config()
+        self.initUI()
+
+    def config(self):
         self.host_ip = server.get_network_ip()
         self.port = 5000
-
-        # Window layout
-        master.title("PyChat Server")
-        master.minsize(width=250, height=150)
-        master.maxsize(width=250, height=150)
         
-        connection = Frame(master)
-        connection.pack()
-
-        controls = Frame(master)
-        controls.pack()
-
-        # Connection frame
         self.state = StringVar()
         self.state.set("Press start")
-        status = Message(connection, textvariable = self.state)
-        status.config(width=250)
-        status.pack(side=TOP, fill=X, padx=10, pady=10)
-
-        ip = Message(connection, text = self.host_ip)
-        ip.config(width=250, font=('courier', 22, 'bold'))
-        ip.pack(side=TOP, fill=X, padx=10, pady=10)
-
-        # Controls frame     
-        start_btn = Button(controls,
-                           font=('courier', 16, 'bold'),
-                           fg="green",
-                           text="Start",
-                           command=self.start)
-        start_btn.pack(side=LEFT, padx=10, pady=10)
         
-        stop_btn = Button(controls,
-                          font=('courier', 16, 'bold'),
-                          fg="red",
-                          text="Stop",
-                          command=self.stop)
-        stop_btn.pack(side=RIGHT, padx=10, pady=10)
+    def initUI(self):
+        self.parent.title("PyChat Server")
+        self.pack(fill=BOTH)
+        
+        frame1 = Frame(self)
+        frame1.pack(fill=BOTH)
+        
+        status = Message(frame1, textvariable = self.state,
+                                 width=150)
+        status.pack(fill=X, padx=5, pady=5)
+        
+        frame2 = Frame(self)
+        frame2.pack(fill=BOTH)
+
+        ip = Message(frame2, text = self.host_ip)
+        ip.config(width=250, font=('courier', 22, 'bold'))
+        ip.pack(fill=X, padx=5, pady=5)
+
+        frame3 = Frame(self)
+        frame3.pack()
+
+        start = Button(frame3, font=('Helvetica', 16, 'bold'),
+                               fg="green",
+                               text="Start",
+                               command=self.start)
+        start.pack(side=LEFT, padx=5, pady=5)
+        
+        stop = Button(frame3, font=('Helvetica', 16, 'bold'),
+                              fg="red",
+                              text="Stop",
+                              command=self.stop)
+        stop.pack(side=RIGHT, padx=5, pady=5)
 
         
     def start(self):        

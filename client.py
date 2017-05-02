@@ -77,7 +77,7 @@ class App(Frame):
         self.pack(fill=BOTH)
         
         frame1 = Frame(self)
-        frame1.pack(fill=X)
+        frame1.pack(fill=BOTH)
         
         lbl1 = Label(frame1, text="Server IP", width=6)
         lbl1.pack(side=LEFT, padx=5, pady=5)           
@@ -86,7 +86,7 @@ class App(Frame):
         self.server_ip.pack(fill=X, padx=5, pady=5)
         
         frame2 = Frame(self)
-        frame2.pack(fill=X)
+        frame2.pack(fill=BOTH)
         
         lbl2 = Label(frame2, text="Alias", width=6)
         lbl2.pack(side=LEFT, padx=5, pady=5)        
@@ -95,7 +95,7 @@ class App(Frame):
         self.alias.pack(fill=X, padx=5, pady=5)
               
         frame3 = Frame(self)
-        frame3.pack(fill=X)
+        frame3.pack(fill=BOTH)
 
         send = Button(frame3, text="Disconnect",
                               fg="red",
