@@ -9,7 +9,6 @@ class Client:
         self.server = None
         self.running = False
         
-    # Hacky helper function
     def get_network_ip(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.connect(("8.8.8.8", 80))
@@ -18,7 +17,6 @@ class Client:
         
         return ip
 
-    # Client controls
     def run(self, app):
         self.app = app
 
@@ -40,7 +38,6 @@ class Client:
         self.server = None
         self.running = False
         
-    # Do the network/socket stuff
     def send(self, alias, msg):
         if self.server != None:
             if msg != '':
