@@ -10,7 +10,6 @@ class Server:
     def __init__(self):
         self.running = False
         
-    # Hacky helper function
     def get_network_ip(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.connect(("8.8.8.8", 80))
@@ -19,7 +18,6 @@ class Server:
         
         return ip
 
-    # Server controls
     def run(self, app):
         #self.app = app
 
@@ -39,7 +37,6 @@ class Server:
     def stop(self):
         self.running = False
         
-    # Do the network/socket stuff
     def process_messages(self):
         clients = []
 
@@ -59,7 +56,6 @@ class Server:
                 
             time.sleep(0.5)
             
-# A nifty GUI
 class App(Frame):
     
     def __init__(self, parent, server):
@@ -109,7 +105,6 @@ class App(Frame):
                               command=self.stop)
         stop.pack(side=RIGHT, padx=5, pady=5)
 
-        
     def start(self):        
         self.server.start()
         self.state.set("Server is running at")
