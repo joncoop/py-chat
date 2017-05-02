@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 import socket
 import time
 import threading
@@ -58,113 +56,113 @@ class Client:
                     tLock.acquire()
                     while True:
                         data, addr = self.sock.recvfrom(1024)
-                        app.update_chat(data.decode())
+                        app.update(data.decode())
                 except:
                     pass
                 finally:
                     tLock.release()
 
             time.sleep(0.5)
-    
-class App:
-    
-    def __init__(self, master, client):
-        master.title("PyChat Client")
+            
+class App(Frame):
+  
+    def __init__(self, parent, client):
+        Frame.__init__(self, parent)   
+        self.parent = parent
         self.client = client
+        self.initUI()
         
-        connection = Frame(master)
-        connection.pack()
-
-        chat_frame = Frame(master)
-        chat_frame.pack()
-
-        text_entry = Frame(master)
-        text_entry.pack()
-
-        # Join section
-        self.alias = Text(connection, height=1, width=10)
-        self.alias.pack(side=LEFT, fill=Y)
-
-        ip_address = ""
-        self.connection_text_widget = Text(connection, height=1, width=15)
-        self.connection_text_widget.pack(side=LEFT, fill=Y)
-        self.connection_text_widget.insert(END, ip_address)
-
-        self.join_btn = Button(connection, 
-                               text="Join",
-                               command=self.join_chat)
-        self.join_btn.pack(side=LEFT)
-
-        self.join_btn = Button(connection, 
-                               text="Leave",
-                               command=self.leave_chat)
-        self.join_btn.pack(side=LEFT)
-
+    def initUI(self):
+        self.parent.title("PyChat Client")
+        self.pack(fill=BOTH)
         
-        # Chat area
-        chat_log = "Begin chat...\n"
+        frame1 = Frame(self)
+        frame1.pack(fill=X)
         
-        self.chat_text = Text(chat_frame, height=20, width=50)
-        self.chat_scroll = Scrollbar(chat_frame)
+        lbl1 = Label(frame1, text="Server IP", width=6)
+        lbl1.pack(side=LEFT, padx=5, pady=5)           
+       
+        self.server_ip = Entry(frame1)
+        self.server_ip.pack(fill=X, padx=5, pady=5)
         
-        self.chat_text.pack(side=LEFT, fill=Y)
-        self.chat_scroll.pack(side=RIGHT, fill=Y)
+        frame2 = Frame(self)
+        frame2.pack(fill=X)
         
-        self.chat_text.config(yscrollcommand=self.chat_scroll.set)
-        self.chat_scroll.config(command=self.chat_text.yview)
-        
-        self.chat_text.insert(END, chat_log)
+        lbl2 = Label(frame2, text="Alias", width=6)
+        lbl2.pack(side=LEFT, padx=5, pady=5)        
 
+        self.alias = Entry(frame2)
+        self.alias.pack(fill=X, padx=5, pady=5)
+              
+        frame3 = Frame(self)
+        frame3.pack(fill=X)
 
-        # Message entry area
-        self.msg_text = Text(text_entry, height=4, width=50)
-        self.msg_scroll = Scrollbar(text_entry)
+        send = Button(frame3, text="Disconnect",
+                              fg="red",
+                              command=self.disconnect)
+        send.pack(side=RIGHT, padx=5, pady=5)
         
-        self.msg_text.pack(side=LEFT, fill=Y)
-        self.msg_scroll.pack(side=RIGHT, fill=Y)
+        send = Button(frame3, text="Connect",
+                              fg="green",
+                              command=self.connect)
+        send.pack(side=RIGHT, padx=5, pady=5)
         
-        self.msg_text.config(yscrollcommand=self.msg_scroll.set)
-        self.msg_scroll.config(command=self.msg_text.yview)
+        frame4 = Frame(self)
+        frame4.pack(fill=BOTH)
         
-        self.send_btn = Button(text_entry,
-                               fg="green",
-                               text="Send",
-                               command=self.send_message)
-        self.send_btn.pack(side=LEFT)
-    
-    def join_chat(self):        
-        ip_address = self.connection_text_widget.get("1.0",END)
-        self.chat_text.insert(END, "You've joined {}\n".format(ip_address))
+        lbl4 = Label(frame4, text="Chat", width=6)
+        lbl4.pack(side=LEFT, anchor=N, padx=5, pady=5)        
 
+        self.dialog = Text(frame4)
+        self.dialog.pack(fill=BOTH, pady=5, padx=5)           
+              
+        frame5 = Frame(self)
+        frame5.pack(fill=BOTH)
+        
+        lbl5 = Label(frame5, text="Message", width=6)
+        lbl5.pack(side=LEFT, anchor=N, padx=5, pady=5)        
+
+        self.message = Text(frame5, height=4)
+        self.message.pack(fill=BOTH, pady=5, padx=5)           
+              
+        frame6 = Frame(self)
+        frame6.pack(fill=BOTH)
+
+        send = Button(frame6, fg="green",
+                              text="Send",
+                              command=self.send)
+        send.pack(side=RIGHT, padx=5, pady=5)
+        
+    def connect(self):        
+        ip_address = self.server_ip.get()
+        self.dialog.insert(END, "You've joined {}\n".format(ip_address))
         self.client.start(self, ip_address)
-
-    def leave_chat(self):        
-        self.chat_text.insert(END, "You've left the chat.\n")
+        
+    def disconnect(self):        
+        self.dialog.insert(END, "You've left the chat.\n")
         self.client.stop()
-
-    def send_message(self):
-        alias = self.alias.get("1.0", END).strip()
-        msg = self.msg_text.get("1.0", END).strip()
-        self.msg_text.delete("1.0", END)
+        
+    def send(self):
+        alias = self.alias.get().strip()
+        msg = self.message.get("1.0", END).strip()
+        self.message.delete("1.0", END)
         
         if len(msg) > 0:
             self.client.send(alias, msg)
             
-
-    def update_chat(self, data):     
+    def update(self, data):
         colon_pos = data.index(':')
         alias = data[:colon_pos]
         msg = data[colon_pos + 1:]
         output = alias + ": " + msg
         
-        self.chat_text.insert(END, output + "\n")
-        self.chat_text.see(END)
+        self.dialog.insert(END, output + "\n")
+        self.dialog.see(END)
+
         
-
-
-if __name__ == "__main__":    
+if __name__ == '__main__':
     root = Tk()
     client = Client()
     app = App(root, client)
     root.after(500, client.run(app))
-    root.mainloop()
+    root.mainloop()  
