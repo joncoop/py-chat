@@ -22,6 +22,8 @@ class Server:
 
     # Server controls
     def run(self):
+        #self.server = server
+
         thread = threading.Thread(target=self.process_messages)
         thread.start()
 
@@ -33,14 +35,6 @@ class Server:
         
     # Do the network/socket stuff
     def process_messages(self):
-        
-        '''
-        print('processing messages')
-        while True:
-            if self.running:
-                print("running")
-                time.sleep(1)
-        '''
         host = self.get_local_ip()
         port = 5000
 
@@ -63,7 +57,9 @@ class Server:
                         s.sendto(data, client)
                 except:
                     pass
-        
+                
+            time.sleep(0.5)
+            
 # A nifty GUI
 class App:
     
@@ -123,14 +119,9 @@ class App:
         app.state.set("Server is stopped at")
 
 
-if __name__ == "__main__":    
-    server = Server()
-    server.run()
-    
+if __name__ == "__main__":
     root = Tk()
+    server = Server()
     app = App(root, server)
+    root.after(500, server.run())
     root.mainloop()
-
-
-# http://stackoverflow.com/questions/26703502/threads-and-tkinter-python-3
-

@@ -21,7 +21,9 @@ class Client:
         return ip
 
     # Client controls
-    def run(self):
+    def run(self, app):
+        self.app = app
+
         host = self.get_local_ip()
         port = 0
 
@@ -33,7 +35,6 @@ class Client:
         thread.start()
 
     def start(self, app, server_ip):
-        self.app = app
         self.server = (server_ip, 5000)
         self.running = True
         
@@ -49,30 +50,20 @@ class Client:
     
     def receive(self, name, sock):
         tLock = threading.Lock()
-        '''
-        print('processing messages')
-        
-        while True:
-            if self.running:
-                print("running")
-                time.sleep(1)
-        '''
+
         while True:
             if self.running:
                 try:
                     tLock.acquire()
                     while True:
                         data, addr = sock.recvfrom(1024)
-                        #print(str(data))
-                        app.chat_text.insert(END, data + "\n")
-                        app.chat_text.see(END)
+                        app.update_chat(str(data))
                 except:
                     pass
                 finally:
                     tLock.release()
 
             time.sleep(0.5)
-        #'''
     
 class App:
     
@@ -90,10 +81,10 @@ class App:
         text_entry.pack()
 
         # Join section
-        ip_address = client.get_local_ip()
+        #ip_address = client.get_local_ip()
         self.connection_text_widget = Text(connection, height=1, width=15)
         self.connection_text_widget.pack(side=LEFT, fill=Y)
-        self.connection_text_widget.insert(END, ip_address)
+        #self.connection_text_widget.insert(END, ip_address)
 
         self.join_btn = Button(connection, 
                                text="Join",
@@ -121,8 +112,8 @@ class App:
         self.chat_text.insert(END, chat_log)
 
 
-        # Message entry
-        new_message = ""
+        # Message entry area
+        default_text = ""
 
         self.msg_text = Text(text_entry, height=4, width=50)
         self.msg_scroll = Scrollbar(text_entry)
@@ -133,7 +124,7 @@ class App:
         self.msg_text.config(yscrollcommand=self.msg_scroll.set)
         self.msg_scroll.config(command=self.msg_text.yview)
         
-        self.msg_text.insert(END, new_message)
+        #self.msg_text.insert(END, default_text)
 
         self.send_btn = Button(text_entry,
                                fg="green",
@@ -150,23 +141,23 @@ class App:
     def leave_chat(self):        
         self.chat_text.insert(END, "You've left the chat.")
         self.client.stop()
-        
+
     def send_message(self):
         msg = self.msg_text.get("1.0",END).strip()
 
-        self.client.send("alias", msg)
-        
         if len(msg) > 0:
-            self.msg_text.delete("1.0",END)
-            #self.chat_text.insert(END, msg + "\n")
-            #self.chat_text.see(END)
+            self.client.send("alias", msg)
+
+    def update_chat(self, msg):
+        self.msg_text.delete("1.0",END)
+        self.chat_text.insert(END, msg + "\n")
+        self.chat_text.see(END)
+        
 
 
 if __name__ == "__main__":    
-    client = Client()
-    client.run()
-    
     root = Tk()
+    client = Client()
     app = App(root, client)
+    root.after(500, client.run(app))
     root.mainloop()
-
