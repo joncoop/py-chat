@@ -13,10 +13,10 @@ class Client:
         
     # Hacky helper function
     def get_local_ip(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        ip = s.getsockname()[0]
-        s.close()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.connect(("8.8.8.8", 80))
+        ip = sock.getsockname()[0]
+        sock.close()
         
         return ip
 
@@ -27,11 +27,11 @@ class Client:
         host = self.get_local_ip()
         port = 0
 
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.s.bind((host, port))
-        self.s.setblocking(0)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind((host, port))
+        self.sock.setblocking(0)
 
-        thread = threading.Thread(target=self.receive, args=("RecvThread", self.s))
+        thread = threading.Thread(target=self.receive, args=("RecvThread", self.sock))
         thread.start()
 
     def start(self, app, server_ip):
@@ -46,7 +46,7 @@ class Client:
     def send(self, alias, msg):
         if self.server != None:
             if msg != '':
-                self.s.sendto((alias + ": " + msg).encode(), self.server)
+                self.sock.sendto((alias + ": " + msg).encode(), self.server)
     
     def receive(self, name, sock):
         tLock = threading.Lock()
@@ -56,7 +56,7 @@ class Client:
                 try:
                     tLock.acquire()
                     while True:
-                        data, addr = sock.recvfrom(1024)
+                        data, addr = self.sock.recvfrom(1024)
                         app.update_chat(str(data))
                 except:
                     pass

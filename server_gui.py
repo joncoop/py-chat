@@ -5,7 +5,6 @@ import time
 import threading
 from tkinter import *
 
-
 class Server:
     
     def __init__(self):
@@ -13,16 +12,23 @@ class Server:
         
     # Hacky helper function
     def get_local_ip(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        ip = s.getsockname()[0]
-        s.close()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.connect(("8.8.8.8", 80))
+        ip = sock.getsockname()[0]
+        sock.close()
         
         return ip
 
     # Server controls
-    def run(self):
-        #self.server = server
+    def run(self, app):
+        #self.app = app
+
+        host = self.get_local_ip()
+        port = 5000
+
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind((host, port))
+        self.sock.setblocking(0)
 
         thread = threading.Thread(target=self.process_messages)
         thread.start()
@@ -35,26 +41,19 @@ class Server:
         
     # Do the network/socket stuff
     def process_messages(self):
-        host = self.get_local_ip()
-        port = 5000
-
         clients = []
-
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.bind((host, port))
-        s.setblocking(0)
 
         while True:
             if self.running:
                 try:
-                    data, addr = s.recvfrom(1024)
+                    data, addr = self.sock.recvfrom(1024)
 
                     if addr not in clients:
                         clients.append(addr)
                         
                     print(time.ctime(time.time()) + str(addr) + ": :" + str(data))
                     for client in clients:
-                        s.sendto(data, client)
+                        self.sock.sendto(data, client)
                 except:
                     pass
                 
@@ -123,5 +122,5 @@ if __name__ == "__main__":
     root = Tk()
     server = Server()
     app = App(root, server)
-    root.after(500, server.run())
+    root.after(500, server.run(app))
     root.mainloop()
