@@ -70,9 +70,6 @@ class App:
         self.host_ip = server.get_network_ip()
         self.port = 5000
 
-        # Server status
-        self.running = False
-
         # Window layout
         master.title("PyChat Server")
         master.minsize(width=250, height=150)

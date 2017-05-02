@@ -58,7 +58,7 @@ class Client:
                     tLock.acquire()
                     while True:
                         data, addr = self.sock.recvfrom(1024)
-                        app.update_chat(str(data))
+                        app.update_chat(data.decode())
                 except:
                     pass
                 finally:
@@ -117,8 +117,6 @@ class App:
 
 
         # Message entry area
-        default_text = ""
-
         self.msg_text = Text(text_entry, height=4, width=50)
         self.msg_scroll = Scrollbar(text_entry)
         
@@ -128,8 +126,6 @@ class App:
         self.msg_text.config(yscrollcommand=self.msg_scroll.set)
         self.msg_scroll.config(command=self.msg_text.yview)
         
-        #self.msg_text.insert(END, default_text)
-
         self.send_btn = Button(text_entry,
                                fg="green",
                                text="Send",
@@ -149,15 +145,16 @@ class App:
     def send_message(self):
         alias = self.alias.get("1.0", END).strip()
         msg = self.msg_text.get("1.0", END).strip()
-
+        self.msg_text.delete("1.0", END)
+        
         if len(msg) > 0:
             self.client.send(alias, msg)
-            self.msg_text.delete("1.0", END)
+            
 
-    def update_chat(self, data):        
+    def update_chat(self, data):     
         colon_pos = data.index(':')
-        alias = data[2: colon_pos]
-        msg = data[colon_pos + 1: -1]
+        alias = data[:colon_pos]
+        msg = data[colon_pos + 1:]
         output = alias + ": " + msg
         
         self.chat_text.insert(END, output + "\n")
