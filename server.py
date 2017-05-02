@@ -11,7 +11,7 @@ class Server:
         self.running = False
         
     # Hacky helper function
-    def get_local_ip(self):
+    def get_network_ip(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.connect(("8.8.8.8", 80))
         ip = sock.getsockname()[0]
@@ -23,7 +23,7 @@ class Server:
     def run(self, app):
         #self.app = app
 
-        host = self.get_local_ip()
+        host = self.get_network_ip()
         port = 5000
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -67,7 +67,7 @@ class App:
         self.server = server
         
         # Network stuff
-        self.host_ip = server.get_local_ip()
+        self.host_ip = server.get_network_ip()
         self.port = 5000
 
         # Server status
@@ -89,33 +89,35 @@ class App:
         self.state.set("Press start")
         status = Message(connection, textvariable = self.state)
         status.config(width=250)
-        status.pack(side=TOP)
+        status.pack(side=TOP, fill=X, padx=10, pady=10)
 
         ip = Message(connection, text = self.host_ip)
-        ip.config(width=250, font=('times', 18, 'bold'))
-        ip.pack(side=TOP)
+        ip.config(width=250, font=('courier', 22, 'bold'))
+        ip.pack(side=TOP, fill=X, padx=10, pady=10)
 
         # Controls frame     
-        self.start_btn = Button(controls,
-                               fg="green",
-                               text="Start",
-                               command=self.start)
-        self.start_btn.pack(side=LEFT)
+        start_btn = Button(controls,
+                           font=('courier', 16, 'bold'),
+                           fg="green",
+                           text="Start",
+                           command=self.start)
+        start_btn.pack(side=LEFT, padx=10, pady=10)
         
-        self.stop_btn = Button(controls,
-                               fg="red",
-                               text="Stop",
-                               command=self.stop)
-        self.stop_btn.pack(side=RIGHT)
+        stop_btn = Button(controls,
+                          font=('courier', 16, 'bold'),
+                          fg="red",
+                          text="Stop",
+                          command=self.stop)
+        stop_btn.pack(side=RIGHT, padx=10, pady=10)
 
         
     def start(self):        
         self.server.start()
-        app.state.set("Server is running at")
+        self.state.set("Server is running at")
         
     def stop(self):        
         self.server.stop()
-        app.state.set("Server is stopped at")
+        self.state.set("Server is stopped at")
 
 
 if __name__ == "__main__":

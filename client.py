@@ -12,7 +12,7 @@ class Client:
         self.running = False
         
     # Hacky helper function
-    def get_local_ip(self):
+    def get_network_ip(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.connect(("8.8.8.8", 80))
         ip = sock.getsockname()[0]
@@ -24,7 +24,7 @@ class Client:
     def run(self, app):
         self.app = app
 
-        host = self.get_local_ip()
+        host = self.get_network_ip()
         port = 0
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -46,7 +46,8 @@ class Client:
     def send(self, alias, msg):
         if self.server != None:
             if msg != '':
-                self.sock.sendto((alias + ": " + msg).encode(), self.server)
+                data = (alias + ":" + msg).encode()
+                self.sock.sendto(data, self.server)
     
     def receive(self, name, sock):
         tLock = threading.Lock()
@@ -81,10 +82,13 @@ class App:
         text_entry.pack()
 
         # Join section
-        #ip_address = client.get_local_ip()
+        self.alias = Text(connection, height=1, width=10)
+        self.alias.pack(side=LEFT, fill=Y)
+
+        ip_address = ""
         self.connection_text_widget = Text(connection, height=1, width=15)
         self.connection_text_widget.pack(side=LEFT, fill=Y)
-        #self.connection_text_widget.insert(END, ip_address)
+        self.connection_text_widget.insert(END, ip_address)
 
         self.join_btn = Button(connection, 
                                text="Join",
@@ -139,18 +143,24 @@ class App:
         self.client.start(self, ip_address)
 
     def leave_chat(self):        
-        self.chat_text.insert(END, "You've left the chat.")
+        self.chat_text.insert(END, "You've left the chat.\n")
         self.client.stop()
 
     def send_message(self):
-        msg = self.msg_text.get("1.0",END).strip()
+        alias = self.alias.get("1.0", END).strip()
+        msg = self.msg_text.get("1.0", END).strip()
 
         if len(msg) > 0:
-            self.client.send("alias", msg)
+            self.client.send(alias, msg)
+            self.msg_text.delete("1.0", END)
 
-    def update_chat(self, msg):
-        self.msg_text.delete("1.0",END)
-        self.chat_text.insert(END, msg + "\n")
+    def update_chat(self, data):        
+        colon_pos = data.index(':')
+        alias = data[2: colon_pos]
+        msg = data[colon_pos + 1: -1]
+        output = alias + ": " + msg
+        
+        self.chat_text.insert(END, output + "\n")
         self.chat_text.see(END)
         
 
